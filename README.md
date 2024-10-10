@@ -22,6 +22,9 @@
 | POSTGRES_USER          |          | postgres      | Postgres server user                                                                                                          |
 | POSTGRES_VERSION       |          | 16            | Postgres server version (14, 15 or 16)                                                                                        |
 | WEBGAZER_HEARTBEAT_URL |          |               | [WebGazer Heartbeat Monitor](https://www.webgazer.io/services/cron-job-monitoring) URL                                        |
+| S3_PROVIDER            |          | AWS           | S3 provider to use, Either "AWS" or "Other")                                                                                  |
+| S3_URL                 |          | "Undefined"   | The S3 Endpoint/URL to use when using the "Other" provider.                                                                   |
+
 
 ### Running
 
