@@ -43,6 +43,7 @@ PGPASSWORD="${POSTGRES_PASSWORD}" "/usr/libexec/postgresql${POSTGRES_VERSION}/pg
     --dbname="${POSTGRES_DB}" \
     --format=c \
     | pigz --fast > "${BACKUP_FILE_NAME}"
+stat "${BACKUP_FILE_NAME}"
 echo "Dumping the database... Done."
 
 echo "Uploading to S3..."
@@ -51,14 +52,14 @@ if [[ "$S3_PROVIDER" == "AWS" ]]; then
   rclone copyto \
     --s3-no-check-bucket \
     "./${BACKUP_FILE_NAME}" \
-    ":s3,access_key_id=${AWS_ACCESS_KEY_ID},provider=AWS,region=${AWS_REGION},secret_access_key=${AWS_SECRET_ACCESS_KEY},storage_class=${AWS_S3_STORAGE_CLASS}:${AWS_S3_ENDPOINT}/${BACKUP_FILE_NAME}"
+    ":s3,access_key_id=${AWS_ACCESS_KEY_ID},secret_access_key=${AWS_SECRET_ACCESS_KEY},provider=AWS,region=${AWS_REGION},storage_class=${AWS_S3_STORAGE_CLASS}:${AWS_S3_ENDPOINT}/${BACKUP_FILE_NAME}"
   echo "Uploading to S3... Done."
 else
   echo "Using Other S3 provider"
   rclone copyto \
     --s3-no-check-bucket \
     "./${BACKUP_FILE_NAME}" \
-    ":s3,access_key_id=${AWS_ACCESS_KEY_ID},provider=Other,region=${AWS_REGION},location_constraint=${AWS_REGION},endpoint=${S3_URL},acl=private,secret_access_key=${AWS_SECRET_ACCESS_KEY}:${AWS_S3_ENDPOINT}/${BACKUP_FILE_NAME}"
+    ":s3,access_key_id=${AWS_ACCESS_KEY_ID},secret_access_key=${AWS_SECRET_ACCESS_KEY},provider=Other,region=${AWS_REGION},location_constraint=${AWS_REGION},endpoint=${S3_URL},acl=private:${AWS_S3_ENDPOINT}/${BACKUP_FILE_NAME}"
   echo "Uploading to S3... Done."
 fi;
 
