@@ -12,12 +12,17 @@ SECONDS=0
 : "${POSTGRES_DB:?Please set the environment variable.}"
 : "${POSTGRES_PASSWORD:?Please set the environment variable.}"
 
+
 # optional environment variables with defaults
 AWS_S3_STORAGE_CLASS="${AWS_S3_STORAGE_CLASS:-STANDARD_IA}"
 POSTGRES_HOST="${POSTGRES_HOST:-postgres}"
 POSTGRES_PORT="${POSTGRES_PORT:-5432}"
 POSTGRES_USER="${POSTGRES_USER:-postgres}"
 POSTGRES_VERSION="${POSTGRES_VERSION:-16}"
+
+S3_PROVIDER="${S3_PROVIDER:-AWS
+S3_URL="${S3_URL:-Undefined}"
+
 
 # validate environment variables
 POSTGRES_VERSIONS=(14 15 16)
@@ -41,11 +46,21 @@ PGPASSWORD="${POSTGRES_PASSWORD}" "/usr/libexec/postgresql${POSTGRES_VERSION}/pg
 echo "Dumping the database... Done."
 
 echo "Uploading to S3..."
-rclone copyto \
-  --s3-no-check-bucket \
-  "./${BACKUP_FILE_NAME}" \
-  ":s3,access_key_id=${AWS_ACCESS_KEY_ID},provider=AWS,region=${AWS_REGION},secret_access_key=${AWS_SECRET_ACCESS_KEY},storage_class=${AWS_S3_STORAGE_CLASS}:${AWS_S3_ENDPOINT}/${BACKUP_FILE_NAME}"
-echo "Uploading to S3... Done."
+if [[ "$S3_PROVIDER" == "AWS" ]]; then
+  echo "Using AWS S3 provider"
+  rclone copyto \
+    --s3-no-check-bucket \
+    "./${BACKUP_FILE_NAME}" \
+    ":s3,access_key_id=${AWS_ACCESS_KEY_ID},provider=AWS,region=${AWS_REGION},secret_access_key=${AWS_SECRET_ACCESS_KEY},storage_class=${AWS_S3_STORAGE_CLASS}:${AWS_S3_ENDPOINT}/${BACKUP_FILE_NAME}"
+  echo "Uploading to S3... Done."
+else
+  echo "Using Other S3 provider"
+  rclone copyto \
+    --s3-no-check-bucket \
+    "./${BACKUP_FILE_NAME}" \
+    ":s3,access_key_id=${AWS_ACCESS_KEY_ID},provider=Other,region=${AWS_REGION},location_constraint=${AWS_REGION},endpoint=${S3_URL},acl=private,secret_access_key=${AWS_SECRET_ACCESS_KEY}:${AWS_S3_ENDPOINT}/${BACKUP_FILE_NAME}"
+  echo "Uploading to S3... Done."
+fi;
 
 if [ -n "${WEBGAZER_HEARTBEAT_URL}" ]; then
   curl "${WEBGAZER_HEARTBEAT_URL}?seconds=${SECONDS}"
